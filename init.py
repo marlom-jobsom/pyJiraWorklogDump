@@ -28,13 +28,13 @@ def get_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
 
     parser.add_argument(
-        '--jira_url', type=str, help=HELP_JIRA_URL, default=_get_jira_url(), required=True)
+        '--jira_url', type=str, help=HELP_JIRA_URL, default=_get_jira_url())
     parser.add_argument(
-        '--jira_user', type=str, help=HELP_JIRA_USER, default=_get_jira_user(), required=True)
+        '--jira_user', type=str, help=HELP_JIRA_USER, default=_get_jira_user())
     parser.add_argument(
-        '--jira_password', type=str, help=HELP_JIRA_PWD, default=_get_jira_password(), required=True)
+        '--jira_password', type=str, help=HELP_JIRA_PWD, default=_get_jira_password())
     parser.add_argument(
-        '--jql', type=str, help=HELP_JQL, default=_get_jql(), required=True)
+        '--jql', type=str, help=HELP_JQL, default=_get_jql())
 
     args, _ = parser.parse_known_args()
 
