@@ -54,6 +54,7 @@ class JiraTask(AbstractJiraIssue):
             'time estimated in sec'.title(): self._time_estimated_in_sec,
             'epic key'.title(): self._epic_key,
             'logger': None,
+            'log date': None,
             'time spent in sec': None})
 
         if self._worklogs:
@@ -63,6 +64,7 @@ class JiraTask(AbstractJiraIssue):
                 entry = csv_data_entry.copy()
                 entry.update({
                     'logger': worklog.author_create.name,
+                    'log date': worklog._created_at,
                     'time spent in sec': worklog.time_spent_in_sec})
 
                 csv_data_entries.append(entry)
