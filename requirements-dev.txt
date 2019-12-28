@@ -1,0 +1,4 @@
+pylint
+coverage
+ipython
+-r requirements.txt
