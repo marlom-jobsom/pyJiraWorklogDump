@@ -57,7 +57,7 @@ class JiraServer:
         :param list[str] keys:
         :return list[AbstractJiraIssue]:
         """
-        jira_task_keys = ','.join(keys)
+        jira_task_keys = ','.join(set(keys))
         jql = 'issueKey in ({})'.format(jira_task_keys)
         return self.search_jira_issues_by_jql(jql)
 
@@ -83,7 +83,7 @@ class JiraServer:
         :param list[str] keys:
         :return list[JiraTask]:
         """
-        jira_task_keys = ','.join(keys)
+        jira_task_keys = ','.join(set(keys))
         jql_str = 'issueKey in ({})'.format(jira_task_keys)
         return self.search_jira_tasks_by_jql(jql_str)
 
@@ -108,7 +108,7 @@ class JiraServer:
         :param list[JiraTask] jira_tasks:
         :return list[JiraEpic]:
         """
-        jira_epics_keys = ','.join([task.epic_key for task in jira_tasks])
+        jira_epics_keys = ','.join(set([task.epic_key for task in jira_tasks]))
         jql = 'issueKey in ({})'.format(jira_epics_keys)
         return self.search_jira_epics_by_jql(jql)
 
@@ -117,7 +117,7 @@ class JiraServer:
         :param list[str] keys:
         :return list[JiraEpic]:
         """
-        jira_epics_keys = ','.join(keys)
+        jira_epics_keys = ','.join(set(keys))
         jql = 'issueKey in ({})'.format(jira_epics_keys)
         return self.search_jira_epics_by_jql(jql)
 
@@ -142,8 +142,8 @@ class JiraServer:
         :param list[JiraEpic] jira_epics:
         :return list[JiraAutomationRequest]:
         """
-        jira_epics_keys = ','.join([
-            epic.automation_request_key for epic in jira_epics if epic.automation_request_key])
+        jira_epics_keys = ','.join(set([
+            epic.automation_request_key for epic in jira_epics if epic.automation_request_key]))
         jql = 'issueKey in ({})'.format(jira_epics_keys)
         return self.search_jira_automation_request_by_jql(jql)
 
