@@ -108,7 +108,13 @@ class JiraServer:
         :param list[JiraTask] jira_tasks:
         :return list[JiraEpic]:
         """
-        jira_epics_keys = ','.join(set([task.epic_key for task in jira_tasks]))
+        tasks_epics_links = [task.epic_key for task in jira_tasks if task.epic_key]
+        tasks_missing_epic_link = [task.key for task in jira_tasks if not task.epic_key]
+
+        if tasks_missing_epic_link:
+            logger.warning(' '.join(['JIRA Tasks missing Epic Links:', *tasks_missing_epic_link]))
+
+        jira_epics_keys = ','.join(set(tasks_epics_links))
         jql = 'issueKey in ({})'.format(jira_epics_keys)
         return self.search_jira_epics_by_jql(jql)
 
