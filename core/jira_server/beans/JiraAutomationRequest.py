@@ -7,8 +7,6 @@ from core.jira_server.beans.AbstractJiraIssue import AbstractJiraIssue
 class JiraAutomationRequest(AbstractJiraIssue):
     """Groups JIRA epics"""
 
-    expected_types = ['Automation Request']
-
     def __init__(self, issue):
         """
         :param jira.resources.Issue issue:
@@ -20,3 +18,10 @@ class JiraAutomationRequest(AbstractJiraIssue):
         :return list[dict]:
         """
         return [super().build_csv_data()]
+
+    @staticmethod
+    def get_expected_types():
+        """
+        :return list:
+        """
+        return ['Automation Request']

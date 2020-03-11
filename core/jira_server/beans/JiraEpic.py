@@ -7,16 +7,6 @@ from core.jira_server.beans.AbstractJiraIssue import AbstractJiraIssue
 class JiraEpic(AbstractJiraIssue):
     """Groups JIRA tasks"""
 
-    # IMPORTANT: It must not have any space after the comma
-    fields = (
-        AbstractJiraIssue.fields + ','
-        'issuelinks,'
-
-        # This is the "Epic Name" field
-        'customfield_13011')
-
-    expected_types = ['Epic']
-
     def __init__(self, issue):
         """
         :param jira.resources.Issue issue:
@@ -25,6 +15,27 @@ class JiraEpic(AbstractJiraIssue):
         self._name = issue.fields.customfield_13011
         self._automation_request_key = JiraEpic._extract_automation_request_key(issue)
 
+    @staticmethod
+    def get_jira_fields():
+        """
+        :return list:
+        """
+        common_fields = super(JiraEpic, JiraEpic).get_jira_fields()
+        epic_fields = [
+            'issuelinks',
+
+            # This is the "Epic Name" field
+            'customfield_13011']
+
+        return common_fields + epic_fields
+
+    @staticmethod
+    def get_expected_types():
+        """
+        :return list:
+        """
+        raise ['Epic']
+
     def build_csv_data(self):
         """
         :return list[dict]:
@@ -32,8 +43,8 @@ class JiraEpic(AbstractJiraIssue):
         csv_data_entries = list()
         csv_data_entry = super().build_csv_data()
         csv_data_entry.update({
-            'epic name'.title(): self._name,
-            'automation request key'.title(): self._automation_request_key})
+            'epic name': self._name,
+            'automation request key': self._automation_request_key})
 
         csv_data_entries.append(csv_data_entry)
 

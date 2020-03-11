@@ -14,6 +14,7 @@ class JiraWorkLog:
         """
         self._author_create = JiraUser(worklog.author)
         self._author_update = JiraUser(worklog.updateAuthor)
+        self._started_at = moment.jira_date_to_datetime(worklog.started)
         self._created_at = moment.jira_date_to_datetime(worklog.created)
         self._updated_at = moment.jira_date_to_datetime(worklog.updated)
         self._time_spent_in_sec = worklog.timeSpentSeconds
@@ -45,6 +46,13 @@ class JiraWorkLog:
         :return datetime.datetime:
         """
         return self._updated_at
+
+    @property
+    def started_at(self):
+        """
+        :return datetime.datetime:
+        """
+        return self._started_at
 
     @property
     def time_spent_in_sec(self):

@@ -10,17 +10,6 @@ from utils import moment
 class AbstractJiraIssue(ABC):
     """An abstract JIRA issue"""
 
-    # IMPORTANT: It must not have any space after the comma
-    fields = (
-        'created,'
-        'updated,'
-        'status,'
-        'summary,'
-        'assignee,'
-        'issuetype')
-
-    expected_types = list()
-
     def __init__(self, issue):
         """
         :param jira.resources.Issue issue:
@@ -35,20 +24,37 @@ class AbstractJiraIssue(ABC):
         self._issue_type = issue.fields.issuetype.name
 
     def __str__(self):
+        """
+        :return str:
+        """
         return type(self).__name__
+
+    @staticmethod
+    def get_jira_fields():
+        """
+        :return list:
+        """
+        return ['created', 'updated', 'status', 'summary', 'assignee', 'issuetype']
+
+    @staticmethod
+    def get_expected_types():
+        """
+        :return list:
+        """
+        raise NotImplementedError('Missing expected JIRA types name')
 
     def build_csv_data(self):
         """
         :return dict:
         """
         return {
-            'key'.title(): self._key,
-            'created at'.title(): self._created_at,
-            'updated at'.title(): self._updated_at,
-            'status'.title(): self._status,
-            'summary'.title(): self._summary,
-            'assignee'.title(): self._assignee.name,
-            'issue type'.title(): self._issue_type}
+            'key': self._key,
+            'created at': self._created_at,
+            'updated at': self._updated_at,
+            'status': self._status,
+            'summary': self._summary,
+            'assignee': self._assignee.name,
+            'issue type': self._issue_type}
 
     @property
     def key(self):

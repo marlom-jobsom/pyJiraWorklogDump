@@ -10,19 +10,6 @@ from utils import moment
 class JiraTask(AbstractJiraIssue):
     """Tracks teammate work-log"""
 
-    fields = (
-        AbstractJiraIssue.fields + ','
-        'resolution,'
-        'resolutiondate,'
-        'versions,'
-        'fixVersions,'
-        'timeoriginalestimate,'
-        
-        # This is the "Epic Link" field
-        'customfield_13010')
-
-    expected_types = ['Engineering Work', 'Defect', 'Task']
-
     def __init__(self, issue, worklogs):
         """
         :param jira.resources.Issue issue:
@@ -40,6 +27,31 @@ class JiraTask(AbstractJiraIssue):
 
         self._epic_key = issue.fields.customfield_13010
 
+    @staticmethod
+    def get_jira_fields():
+        """
+        :return list:
+        """
+        common_fields = super(JiraTask, JiraTask).get_jira_fields()
+        task_fields = [
+            'resolution',
+            'resolutiondate',
+            'versions',
+            'fixVersions',
+            'timeoriginalestimate',
+
+            # This is the "Epic Link" field
+            'customfield_13010']
+
+        return common_fields + task_fields
+
+    @staticmethod
+    def get_expected_types():
+        """
+        :return list:
+        """
+        return ['Engineering Work', 'Defect', 'Task']
+
     def build_csv_data(self):
         """
         :return list:
@@ -47,12 +59,12 @@ class JiraTask(AbstractJiraIssue):
         csv_data_entries = list()
         csv_data_entry = super().build_csv_data()
         csv_data_entry.update({
-            'resolution type'.title(): self._resolution_type,
-            'resolution date'.title(): self._resolution_date,
-            'affected versions'.title(): self._affected_versions[0].name if self._affected_versions else None,
-            'fix versions'.title(): self._fix_versions[0].name if self._fix_versions else None,
-            'time estimated in sec'.title(): self._time_estimated_in_sec,
-            'epic key'.title(): self._epic_key,
+            'resolution type': self._resolution_type,
+            'resolution date': self._resolution_date,
+            'affected versions': self._affected_versions[0].name if self._affected_versions else None,
+            'fix versions': self._fix_versions[0].name if self._fix_versions else None,
+            'time estimated in sec': self._time_estimated_in_sec,
+            'epic key': self._epic_key,
             'logger': None,
             'log date': None,
             'time spent in sec': None})
@@ -64,7 +76,7 @@ class JiraTask(AbstractJiraIssue):
                 entry = csv_data_entry.copy()
                 entry.update({
                     'logger': worklog.author_create.name,
-                    'log date': worklog._created_at,
+                    'log date': worklog.started_at,
                     'time spent in sec': worklog.time_spent_in_sec})
 
                 csv_data_entries.append(entry)
