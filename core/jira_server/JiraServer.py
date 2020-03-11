@@ -6,7 +6,6 @@ from jira import JIRA
 from core.jira_server.beans.JiraAutomationRequest import JiraAutomationRequest
 from core.jira_server.beans.JiraEpic import JiraEpic
 from core.jira_server.beans.JiraTask import JiraTask
-from core.jira_server.exceptions.UnexpectedJiraIssueTypeException import UnexpectedJiraIssueTypeException
 from utils import logger
 
 
@@ -25,41 +24,24 @@ class JiraServer:
             validate=True,
             get_server_info=True)
 
-    def search_jira_issues_by_jql(self, jql):
+    @staticmethod
+    def _warn_jira_task_missing_epic_key(jira_tasks):
         """
-        :param str jql:
-        :return list[AbstractJiraIssue]:
+        :param list[JiraTask] jira_tasks:
         """
-        logger.info('JQL: {}'.format(jql))
-        jira_issues = list()
-        issues = self._run_query(jql, JiraServer._build_all_unique_fields())
-        logger.info('Retrieved #{} JIRA issues'.format(len(issues)))
+        tasks_missing_epic_link = [task.key for task in jira_tasks if not task.epic_key]
 
-        for issue in issues:
-            issue_type_name = issue.fields.issuetype.name
+        if tasks_missing_epic_link:
+            logger.warning(' '.join(['JIRA Tasks missing Epic Links:', *tasks_missing_epic_link]))
 
-            if issue_type_name in JiraAutomationRequest.expected_types:
-                jira_issue = JiraAutomationRequest(issue)
-            elif issue_type_name in JiraEpic.expected_types:
-                jira_issue = JiraEpic(issue)
-            elif issue_type_name in JiraTask.expected_types:
-                issue_worklogs = self._instance.worklogs(issue)
-                jira_issue = JiraTask(issue, issue_worklogs)
-            else:
-                raise UnexpectedJiraIssueTypeException(issue_type_name)
-
-            jira_issues.append(jira_issue)
-
-        return jira_issues
-
-    def search_jira_issues_by_keys(self, keys):
+    @staticmethod
+    def _get_jira_fields_name_for_sql(jira_fields_names):
         """
-        :param list[str] keys:
-        :return list[AbstractJiraIssue]:
+        :param list[str] jira_fields_names:
+        :return str:
         """
-        jira_task_keys = ','.join(set(keys))
-        jql = 'issueKey in ({})'.format(jira_task_keys)
-        return self.search_jira_issues_by_jql(jql)
+        # IMPORTANT: It must not have any space after the comma
+        return ','.join(jira_fields_names)
 
     def search_jira_tasks_by_jql(self, jql):
         """
@@ -68,7 +50,7 @@ class JiraServer:
         """
         logger.info('JQL: {}'.format(jql))
         jira_tasks = list()
-        issues = self._run_query(jql, JiraTask.fields)
+        issues = self._run_query(jql, JiraTask.get_jira_fields())
         logger.info('Retrieved #{} {}'.format(len(issues), JiraTask.__name__))
 
         for issue in issues:
@@ -78,15 +60,6 @@ class JiraServer:
 
         return jira_tasks
 
-    def search_jira_tasks_by_keys(self, keys):
-        """
-        :param list[str] keys:
-        :return list[JiraTask]:
-        """
-        jira_task_keys = ','.join(set(keys))
-        jql_str = 'issueKey in ({})'.format(jira_task_keys)
-        return self.search_jira_tasks_by_jql(jql_str)
-
     def search_jira_epics_by_jql(self, jql):
         """
         :param str jql:
@@ -94,11 +67,27 @@ class JiraServer:
         """
         logger.info('JQL: {}'.format(jql))
         jira_epics = list()
-        issues = self._run_query(jql, JiraEpic.fields)
+        issues = self._run_query(jql, JiraEpic.get_jira_fields())
         logger.info('Retrieved #{} {}'.format(len(issues), JiraEpic.__name__))
 
         for issue in issues:
             jira_epic = JiraEpic(issue)
+            jira_epics.append(jira_epic)
+
+        return jira_epics
+
+    def search_jira_automation_request_by_jql(self, jql):
+        """
+        :param str jql:
+        :return list[JiraAutomationRequest]:
+        """
+        logger.info('JQL: {}'.format(jql))
+        jira_epics = list()
+        issues = self._run_query(jql, JiraAutomationRequest.get_jira_fields())
+        logger.info('Retrieved #{} {}'.format(len(issues), JiraAutomationRequest.__name__))
+
+        for issue in issues:
+            jira_epic = JiraAutomationRequest(issue)
             jira_epics.append(jira_epic)
 
         return jira_epics
@@ -108,40 +97,13 @@ class JiraServer:
         :param list[JiraTask] jira_tasks:
         :return list[JiraEpic]:
         """
+        self._warn_jira_task_missing_epic_key(jira_tasks)
+
         tasks_epics_links = [task.epic_key for task in jira_tasks if task.epic_key]
-        tasks_missing_epic_link = [task.key for task in jira_tasks if not task.epic_key]
+        unique_jira_epics_keys = ','.join(set(tasks_epics_links))
+        jql = 'issueKey in ({})'.format(unique_jira_epics_keys)
 
-        if tasks_missing_epic_link:
-            logger.warning(' '.join(['JIRA Tasks missing Epic Links:', *tasks_missing_epic_link]))
-
-        jira_epics_keys = ','.join(set(tasks_epics_links))
-        jql = 'issueKey in ({})'.format(jira_epics_keys)
         return self.search_jira_epics_by_jql(jql)
-
-    def search_jira_epics_by_keys(self, keys):
-        """
-        :param list[str] keys:
-        :return list[JiraEpic]:
-        """
-        jira_epics_keys = ','.join(set(keys))
-        jql = 'issueKey in ({})'.format(jira_epics_keys)
-        return self.search_jira_epics_by_jql(jql)
-
-    def search_jira_automation_request_by_jql(self, jql):
-        """
-        :param str jql:
-        :return list[JiraAutomationRequest]:
-        """
-        logger.info('JQL: {}'.format(jql))
-        jira_epics = list()
-        issues = self._run_query(jql, JiraAutomationRequest.fields)
-        logger.info('Retrieved #{} {}'.format(len(issues), JiraAutomationRequest.__name__))
-
-        for issue in issues:
-            jira_epic = JiraAutomationRequest(issue)
-            jira_epics.append(jira_epic)
-
-        return jira_epics
 
     def search_jira_automation_request_by_jira_epics(self, jira_epics):
         """
@@ -153,29 +115,13 @@ class JiraServer:
         jql = 'issueKey in ({})'.format(jira_epics_keys)
         return self.search_jira_automation_request_by_jql(jql)
 
-    def search_jira_automation_request_by_keys(self, keys):
-        """
-        :param list[str] keys:
-        :return list[JiraAutomationRequest]:
-        """
-        jira_epics_keys = ','.join(keys)
-        jql = 'issueKey in ({})'.format(jira_epics_keys)
-        return self.search_jira_automation_request_by_jql(jql)
-
     def _run_query(self, jql, fields):
         """
         :param str jql:
-        :param str fields:
+        :param list[str] fields:
         :return list[jira.resources.Issue]:
         """
-        return self._instance.search_issues(jql_str=jql, maxResults=False, fields=fields)
-
-    @staticmethod
-    def _build_all_unique_fields():
-        """
-        :return str:
-        """
-        fields = JiraAutomationRequest.fields.split(',')
-        fields.extend(JiraEpic.fields.split(','))
-        fields.extend(JiraTask.fields.split(','))
-        return ','.join(list(set(fields)))
+        return self._instance.search_issues(
+            jql_str=jql,
+            maxResults=False,
+            fields=JiraServer._get_jira_fields_name_for_sql(fields))
