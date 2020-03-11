@@ -22,7 +22,7 @@ class Reporter:
         header = Reporter._get_header(jira_issues[0])
         logger.info('Saving #{} {}'.format(len(jira_issues), str(jira_issues[0])))
 
-        with codecs.open(filename=file_path, mode='ab', encoding='utf-8') as _file:
+        with codecs.open(filename=file_path, mode='w', encoding='utf-8') as _file:
             csv_writer = csv.DictWriter(_file, delimiter=',', fieldnames=header)
             csv_writer.writeheader()
 
