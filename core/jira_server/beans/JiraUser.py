@@ -5,14 +5,14 @@
 class JiraUser:
     """JIRA server user"""
 
-    def __init__(self, user):
+    def init(self, user):
         """
         :param jira.resources.User user:
         """
-        self._name = user.displayName
-        self._email = user.emailAddress
-        self._core_id = user.name
-        self._is_active = user.active
+        self._name = user.displayName if user else 'Unassigned'
+        self._email = user.emailAddress if user else 'Unassigned'
+        self._core_id = user.name if user else 'Unassigned'
+        self._is_active = bool(user)
 
     @property
     def name(self):
