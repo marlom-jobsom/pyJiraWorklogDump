@@ -5,7 +5,7 @@
 class JiraUser:
     """JIRA server user"""
 
-    def init(self, user):
+    def __init__(self, user):
         """
         :param jira.resources.User user:
         """
