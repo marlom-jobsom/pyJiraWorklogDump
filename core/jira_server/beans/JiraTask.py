@@ -44,7 +44,7 @@ class JiraTask(AbstractJiraIssue):
             'customfield_13010',
 
             # This is the "Sprint" field
-            'custom_field_11610']
+            'customfield_11610']
 
         return common_fields + task_fields
 
