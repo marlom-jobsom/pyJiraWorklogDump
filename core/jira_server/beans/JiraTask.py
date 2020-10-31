@@ -41,7 +41,10 @@ class JiraTask(AbstractJiraIssue):
             'timeoriginalestimate',
 
             # This is the "Epic Link" field
-            'customfield_13010']
+            'customfield_13010',
+
+            # This is the "Sprint" field
+            'custom_field_11610']
 
         return common_fields + task_fields
 
